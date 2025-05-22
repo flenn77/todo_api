@@ -1,0 +1,54 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3000:3000"
+      - "9464:9464" # expose l’export Prometheus
+
+  worker:
+    build: .
+    depends_on:
+      - redis
+    command: node src/worker.js
+    environment:
+      - REDIS_URL=redis://redis:6379
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+
+    # ──> à la racine du service (par exemple juste après prometheus)
+  jaeger:
+    image: jaegertracing/all-in-one:1.46
+    ports:
+      - "6831:6831/udp" # UDP pour l’OTLP gRPC/UDP
+      - "16686:16686" # UI Jaeger
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+
+volumes:
+  grafana-data:

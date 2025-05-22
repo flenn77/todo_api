@@ -1,0 +1,53 @@
+{
+  "uid": "todo-api-monitoring",
+  "title": "Todo API Monitoring",
+  "schemaVersion": 36,
+  "version": 1,
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "type": "stat",
+      "title": "P95 HTTP Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "datasource": "Prometheus",
+      "type": "stat",
+      "title": "P99 HTTP Latency",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "B"
+        }
+      ],
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "datasource": "Prometheus",
+      "type": "graph",
+      "title": "Req/sec & Errors",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m]))",
+          "legendFormat": "reqs/sec",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate(http_request_errors_total[1m]))",
+          "legendFormat": "errors/sec",
+          "refId": "D"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 }
+    }
+  ],
+  "overwrite": true
+}
